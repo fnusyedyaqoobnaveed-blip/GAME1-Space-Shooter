@@ -22,7 +22,7 @@ A 2D/3D spaceship game where you travel toward distant targets (in light years),
 | **Collectibles** | Planets = coins |
 | **Progression** | Difficulty ↑, target distance ↑, player speed ↑ |
 | **Shooting** | Space/click to fire; damage & triple shot scale with level |
-| **Tricks** | Barrel roll (Q/E) = invincibility; Shift = speed boost |
+| **Tricks** | Barrel roll (Q/E) = invincibility; Shift = speed boost; P/Esc = pause/resume (web) |
 | **Combo** | Chain monster kills for bonus planets (every 3 kills) |
 
 ---

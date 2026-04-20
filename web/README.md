@@ -31,5 +31,6 @@ When you open the game, **controls are shown on the left** and **what to do on t
 - **Space** — Shoot
 - **Q** or **E** — Dodge (barrel roll; you can’t be hit while spinning)
 - **Shift** — Boost (move faster for a short time)
+- **P** or **Esc** — Pause / Resume
 
 **Goal:** Fly to the **green circle**. Dodge **gray** (asteroids), shoot **red** (monsters), collect **yellow** (planets). The orange dot is your fairy.
