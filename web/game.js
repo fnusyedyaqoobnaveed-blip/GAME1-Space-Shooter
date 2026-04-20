@@ -158,6 +158,7 @@
   let levelCompletePending = false;
   let levelJustCompleted = 0;
   let gameWon = false;
+  let gamePaused = false;
   let roundIntroUntil = 0;
   let gameStarted = false;
   const POINTS_KILL = 10;
@@ -331,7 +332,31 @@
     hideMusicHint();
   }
 
+  function setPaused(paused) {
+    if (!gameStarted || gameOver || levelCompletePending || gameWon) return;
+    gamePaused = paused;
+    if (bgMusic && window._musicStarted && !window._soundMuted) {
+      if (gamePaused) {
+        bgMusic.pause();
+      } else if (!bgMusic.error) {
+        bgMusic.play().catch(function() {});
+      }
+    }
+    if (gamePaused) {
+      keys = {};
+      Object.keys(touchInput).forEach(function(k) { touchInput[k] = false; });
+      window._lastSpace = false;
+    }
+  }
+
   document.addEventListener('keydown', e => {
+    if (e.code === 'KeyP' || e.code === 'Escape') {
+      if (gameStarted && !gameOver && !levelCompletePending) {
+        setPaused(!gamePaused);
+      }
+      e.preventDefault();
+      return;
+    }
     if (!gameStarted) {
       gameStarted = true;
       roundIntroUntil = Date.now() / 1000 + 2;
@@ -478,7 +503,7 @@
   }
 
   function update(dt) {
-    if (!gameStarted || gameOver) return;
+    if (!gameStarted || gameOver || gamePaused) return;
     if (levelCompletePending) {
       if ((keys['Space'] || touchInput.fire) && !gameWon) {
         levelCompletePending = false;
@@ -747,6 +772,7 @@
     }
   }
   document.addEventListener('keydown', function(ev) {
+    if (gamePaused) return;
     if (ev.key !== HELPER_FAIRY_KEY && ev.key !== HELPER_FAIRY_KEY.toLowerCase()) return;
     const now = Date.now();
     if (now - helperFairyLastKeyTime <= HELPER_FAIRY_DOUBLETAP_MS) {
@@ -1118,6 +1144,18 @@
       ctx.font = '20px system-ui';
       ctx.fillStyle = '#e2e8f0';
       ctx.fillText('Refresh to play again', W / 2, H / 2 + 110);
+    }
+
+    if (gamePaused && !gameOver && !levelCompletePending) {
+      ctx.fillStyle = 'rgba(0,0,0,0.68)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 52px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Paused', W / 2, H / 2 - 16);
+      ctx.font = '22px system-ui';
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('Press P or Esc to resume', W / 2, H / 2 + 26);
     }
 
     if (!gameStarted) {
