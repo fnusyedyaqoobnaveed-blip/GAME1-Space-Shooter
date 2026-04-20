@@ -1,0 +1,11 @@
+GAME1-Space-Shooter
+Saved stage snapshot of Spaceship Journey (web game).
+
+This copy includes:
+- Full web game (index.html, game.js, assets, sounds)
+- Helper fairy (double-tap F or double-tap icon on touch)
+- Touch/mobile controls, fullscreen, in-canvas score bar
+- Mute button fix, no local-server warning
+- All documentation and scripts from the original project
+
+Date saved: March 2025

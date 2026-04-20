@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spaceship Journey</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a12;
+      font-family: system-ui, sans-serif;
+      color: #e0e0e0;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #7dd3fc; }
+    p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }
+    #game {
+      border: 2px solid #334155;
+      border-radius: 8px;
+      background: #0f172a;
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+    #ui {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #ui span { color: #cbd5e1; }
+    .info-row {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      max-width: 900px;
+    }
+    #controls, #goal {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+    }
+    #controls { max-width: 280px; }
+    #controls h3, #goal strong { font-size: 1rem; color: #7dd3fc; margin-bottom: 6px; display: block; }
+    #controls p, #goal { color: #cbd5e1; margin: 4px 0; }
+    #controls kbd {
+      background: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    #goal { max-width: 220px; color: #a5b4fc; }
+    #localServerWarning { display: none !important; }
+    #gameWrap { position: relative; display: inline-block; max-width: 100%; touch-action: manipulation; }
+    #touchControls {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      touch-action: none;
+    }
+    #touchControls * { pointer-events: auto; touch-action: none; }
+    @media (hover: none) and (pointer: coarse) {
+      #touchControls { display: block; }
+    }
+    .touch-btn {
+      position: absolute;
+      border: none;
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.85);
+      color: rgba(226, 232, 240, 0.9);
+      font-size: 1.1rem;
+      font-family: system-ui, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .touch-btn:active { background: rgba(59, 130, 246, 0.5); color: #fff; }
+    .touch-dpad {
+      left: 2%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22%;
+      max-width: 140px;
+      aspect-ratio: 1;
+      position: absolute;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      gap: 4px;
+      align-items: center;
+      justify-items: center;
+    }
+    .touch-dpad .touch-up { grid-column: 2; grid-row: 1; }
+    .touch-dpad .touch-down { grid-column: 2; grid-row: 3; }
+    .touch-dpad .touch-left { grid-column: 1; grid-row: 2; }
+    .touch-dpad .touch-right { grid-column: 3; grid-row: 2; }
+    .touch-dpad .touch-btn { width: 100%; height: 100%; min-height: 44px; min-width: 44px; }
+    .touch-actions {
+      right: 2%;
+      bottom: 12%;
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .touch-fire { width: 64px; height: 64px; border-radius: 50%; font-size: 0.85rem; }
+    .touch-dodge, .touch-boost { width: 52px; height: 52px; border-radius: 50%; font-size: 0.7rem; }
+    #gameWrap:fullscreen,
+    #gameWrap:-webkit-full-screen,
+    #gameWrap:-ms-fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100%;
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+    }
+  </style>
+</head>
+<body style="position:relative;">
+  <h1>Spaceship Journey</h1>
+  <p style="margin-bottom: 0.5rem;">Click the game first, then use keys or on-screen controls (on touch devices).</p>
+  <div id="localServerWarning" style="display:none;max-width:560px;margin:0 auto 1rem;padding:12px 16px;background:#422006;border:1px solid #b45309;border-radius:8px;font-size:14px;color:#fde68a;">
+    <strong>Music won’t play when the game is opened as a file.</strong><br><br>
+    In <b>Terminal</b>, run:<br>
+    <code style="display:block;margin:8px 0;padding:8px;background:#0a0a12;border-radius:4px;color:#7dd3fc;">cd "<span id="webPathHint">SpaceshipJourney/web</span>"<br>python3 -m http.server 8000</code>
+    Then in your browser open: <a href="http://localhost:8000" style="color:#7dd3fc;">http://localhost:8000</a>
+  </div>
+  <div class="info-row">
+    <div id="controls">
+      <h3>Controls</h3>
+      <p><strong>Keyboard / PC</strong></p>
+      <p><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> — Move</p>
+      <p><kbd>Space</kbd> — Shoot (direction you face)</p>
+      <p><kbd>Q</kbd> or <kbd>E</kbd> — Dodge (barrel roll)</p>
+      <p><kbd>Shift</kbd> — Speed boost</p>
+      <p><kbd>F</kbd> double-tap — Helper fairy (+2 hits, 2 uses per game)</p>
+      <p style="margin-top:10px;"><strong>Touch / Mobile</strong></p>
+      <p>On-screen: D-pad (move), FIRE, DODGE, BOOST. Double-tap fairy icon (top-right) for +2 hits. Tap FIRE to continue between rounds.</p>
+    </div>
+    <div id="goal">
+      <strong>Goal</strong>
+      <p style="margin:6px 0 4px 0;">10 rounds, 90 seconds each. Reach the kill target before time runs out and before you take too many hits.</p>
+      <p style="margin:4px 0;font-size:0.9em;">R1: 15 kills / 15 hits &middot; R2: 20 / 15 &middot; R3: 20 / 10 &middot; R4: 25 / 10 &middot; R5: 30 / 10 &middot; R6: 30 / 5 &middot; R7–8: 30 / 3 &middot; R9: 30 / 2 &middot; R10: 30 / 1</p>
+      <p style="margin:4px 0 0 0;color:#a5b4fc;">Beat all 10 rounds to win.</p>
+    </div>
+  </div>
+  <audio id="bgMusic" loop preload="auto">
+    <source src="sounds/music.mp3" type="audio/mpeg">
+    <source src="sounds/music.ogg" type="audio/ogg">
+  </audio>
+  <audio id="soundShoot" preload="auto"><source src="sounds/shoot.mp3" type="audio/mpeg"></audio>
+  <audio id="soundHit" preload="auto"><source src="sounds/hit.mp3" type="audio/mpeg"></audio>
+  <audio id="soundAsteroidCrash" preload="auto">
+    <source src="sounds/crash.mp3" type="audio/mpeg">
+    <source src="sounds/asteroid_crash.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="soundGameOver" preload="auto"><source src="sounds/game_over.mp3" type="audio/mpeg"></audio>
+  <audio id="soundMonsterShipCrash" preload="auto"><source src="sounds/monster_ship_crash.mp3" type="audio/mpeg"></audio>
+  <audio id="soundWin" preload="auto"><source src="sounds/win_sound.mp3" type="audio/mpeg"></audio>
+  <div id="musicHint" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);padding:14px 20px;border-radius:8px;border:1px solid #475569;font-size:15px;color:#94a3b8;z-index:10;pointer-events:none;">
+    Click the button below or press any key to start music
+  </div>
+  <div style="margin-bottom:8px;">
+    <button type="button" id="playMusicBtn" style="padding:10px 20px;font-size:16px;cursor:pointer;background:#1e40af;color:#fff;border:1px solid #3b82f6;border-radius:8px;">▶ Play music</button>
+    <button type="button" id="muteBtn" style="padding:10px 20px;font-size:16px;cursor:pointer;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;margin-left:8px;">🔇 Mute</button>
+    <button type="button" id="fullscreenBtn" style="padding:10px 20px;font-size:16px;cursor:pointer;background:#334155;color:#e2e8f0;border:1px solid #475569;border-radius:8px;margin-left:8px;" title="Maximize game">⛶ Fullscreen</button>
+    <span id="musicStatus" style="margin-left:12px;font-size:14px;color:#94a3b8;"></span>
+  </div>
+  <div id="gameWrap" tabindex="0" style="outline: none;">
+    <canvas id="game" width="900" height="560"></canvas>
+    <div id="touchControls" aria-label="Touch controls">
+      <div class="touch-dpad">
+        <button type="button" class="touch-btn touch-up" data-touch="moveUp" aria-label="Move up">▲</button>
+        <button type="button" class="touch-btn touch-down" data-touch="moveDown" aria-label="Move down">▼</button>
+        <button type="button" class="touch-btn touch-left" data-touch="moveLeft" aria-label="Move left">◀</button>
+        <button type="button" class="touch-btn touch-right" data-touch="moveRight" aria-label="Move right">▶</button>
+      </div>
+      <div class="touch-actions">
+        <button type="button" class="touch-btn touch-fire" data-touch="fire" aria-label="Fire">FIRE</button>
+        <button type="button" class="touch-btn touch-dodge" data-touch="dodge" aria-label="Dodge">DODGE</button>
+        <button type="button" class="touch-btn touch-boost" data-touch="boost" aria-label="Boost">BOOST</button>
+      </div>
+    </div>
+  </div>
+  <div id="ui">
+    <span id="level">Round 1</span>
+    <span id="timer">Time: 90s</span>
+    <span id="hurdles">Kills 0/15</span>
+    <span id="score">Score: 0  |  Best: 0</span>
+    <span id="planets">Coins: 0</span>
+    <span id="health">Hits: 0/15</span>
+    <span id="combo"></span>
+  </div>
+  <script src="game.js" onerror="document.body.innerHTML='<h1 style=color:#f87171>Could not load game.js</h1><p>Put <b>index.html</b> and <b>game.js</b> in the same folder (e.g. the <b>web</b> folder), then open index.html again.</p>'"></script>
+</body>
+</html>
